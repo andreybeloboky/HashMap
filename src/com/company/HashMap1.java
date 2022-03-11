@@ -1,13 +1,30 @@
 package com.company;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class HashMap1 implements Map1 {
-    private Node[] array;
+    private Node[] array = new Node[16];
     private int countOfElements;
     private int lock;
+    private float loadFactory = 0.75f;
 
     public HashMap1() {
-        this.array = new Node[16];
-        this.countOfElements = 0;
+    }
+
+    public HashMap1(int capacity, int loadFactory) {
+        if (capacity < 0) {
+            throw new IllegalArgumentException("Illegal initial capacity: " +
+                    capacity);
+        } else {
+            this.array = new Node[capacity];
+        }
+        if (loadFactory < 0) {
+            throw new IllegalArgumentException("Illegal initial load factor: " +
+                    capacity);
+        } else {
+            this.loadFactory = loadFactory;
+        }
     }
 
     private static class Node {
@@ -110,22 +127,29 @@ public class HashMap1 implements Map1 {
      */
     @Override
     public void put(String key, Object value) {
-        int index = key.hashCode() % array.length;
-        Node newNode = new Node(key, value, key.hashCode());
-        Node current = array[index];
-        if (array[index] == null) {
-            array[index] = newNode;
-            countOfElements++;
-        } else {
-            while (current.next != null) {
-                if (current.hash == key.hashCode()) {
-                    current.value = value;
-                    return;
+        if (loadFactory * array.length > countOfElements) {
+            int index = key.hashCode() % array.length;
+            Node newNode = new Node(key, value, key.hashCode());
+            Node current = array[index];
+            if (array[index] == null) {
+                array[index] = newNode;
+                countOfElements++;
+            } else {
+                while (current.next != null) {
+                    if (current.hash == key.hashCode()) {
+                        current.value = value;
+                        return;
+                    }
+                    current = current.next;
                 }
-                current = current.next;
+                // last element, where element is equal null;
+                checkLastElement(current, key, value, newNode);
             }
-            // last element, where element is equal null;
-            checkLastElement(current, key, value, newNode);
+        } else {
+            Node[] reserveArray = this.array;
+            this.array = new Node[reserveArray.length * 2];
+            System.arraycopy(reserveArray, 0, this.array, 0, reserveArray.length);
+            put(key, value);
         }
     }
 
@@ -225,5 +249,20 @@ public class HashMap1 implements Map1 {
             lock++;
         }
         return containKey;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HashMap1 hashMap1 = (HashMap1) o;
+        return countOfElements == hashMap1.countOfElements && lock == hashMap1.lock && Float.compare(hashMap1.loadFactory, loadFactory) == 0 && Arrays.equals(array, hashMap1.array);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(countOfElements, lock, loadFactory);
+        result = 31 * result + Arrays.hashCode(array);
+        return result;
     }
 }

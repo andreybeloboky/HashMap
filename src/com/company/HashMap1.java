@@ -137,8 +137,10 @@ public class HashMap1 implements Map1 {
             } else {
                 while (current.next != null) {
                     if (current.hash == key.hashCode()) {
-                        current.value = value;
-                        return;
+                        if (key.equals(current.key)) {
+                            current.value = value;
+                            return;
+                        }
                     }
                     current = current.next;
                 }
@@ -202,7 +204,9 @@ public class HashMap1 implements Map1 {
      */
     private void checkLastElement(Node current, String key, Object value, Node newNode) {
         if (current.hash == key.hashCode()) {
-            current.value = value;
+            if (key.equals(current.key)) {
+                current.value = value;
+            }
         } else {
             current.next = newNode;
             countOfElements++;

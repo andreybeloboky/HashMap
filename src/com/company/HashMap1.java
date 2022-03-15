@@ -160,16 +160,16 @@ public class HashMap1 implements Map1 {
      */
     @Override
     public void remove(String key) {
-        int lock = 0;
-        int i = 0;
-        while (lock != 1 && i < array.length - 1) {
-            Node current = array[i];
-            Node previous = null;
-            try {
+        if (countOfElements < array.length / 2) {
+            int lock = 0;
+            int index = key.hashCode() % array.length;
+            while (lock != 1) {
+                Node current = array[index];
+                Node previous = null;
                 while (current.next != null) {
                     if (current.hash == key.hashCode()) {
-                        if (current == array[i]) {
-                            array[i] = current.next;
+                        if (current == array[index]) {
+                            array[index] = current.next;
                             lock++;
                         } else {
                             if (previous != null) {
@@ -189,9 +189,21 @@ public class HashMap1 implements Map1 {
                     countOfElements--;
                     lock++;
                 }
-                i++;
-            } catch (NullPointerException e) {
-                i++;
+            }
+        } else {
+            Node[] reserveArray = this.array;
+            this.array = new Node[reserveArray.length / 2];
+            int lock;
+            int j = 0;
+            for (int i = 0; i < array.length; i++) {
+                lock = 0;
+                while (lock != 1) {
+                    if (reserveArray[j] != null) {
+                        array[i] = reserveArray[j];
+                        lock++;
+                    }
+                    j++;
+                }
             }
         }
     }
